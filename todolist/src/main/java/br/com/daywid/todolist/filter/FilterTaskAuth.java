@@ -2,11 +2,9 @@ package br.com.daywid.todolist.filter;
 
 import java.io.IOException;
 import java.util.Base64;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import br.com.daywid.todolist.user.IUserRepository;
 import jakarta.servlet.FilterChain;
@@ -26,6 +24,10 @@ public class FilterTaskAuth extends OncePerRequestFilter{
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        var servletPath = request.getServletPath();
+
+        if(servletPath.startsWith("/tasks/")){
+
                 //Pegar a autenticação (usuario e senha)
                 var authorizarion =  request.getHeader("Authorizarion");
   
@@ -39,31 +41,32 @@ public class FilterTaskAuth extends OncePerRequestFilter{
                 String username = credentials[0];
                 String password = credentials[1];
 
-               
                 //validar usuario.
-                    var user = this.userRepository.findByUsername(username);
-                    if(user == null){
-                        response.sendError(401);
+                var user = this.userRepository.findByUsername(username);
+                if(user == null){
+                    response.sendError(401);
+                }else{
+                    //validar a senha.
+                    var passwordVerify = BCrypt.verifyer().verify(password.toCharArray(), user.getPassword());
+                    if (passwordVerify.verified){
+                        request.setAttribute("idUser",user.getId());
+                        filterChain.doFilter(request, response);
                     }else{
-                        //validar a senha.
-                        var passwordVerify = BCrypt.verifyer().verify(password.toCharArray(), user.getPassword());
-                        if (passwordVerify.verified){
-                            filterChain.doFilter(request, response);
-                        }else{
-                            response.sendError(401);
-                        }
-                        //segue viagem.
+                        response.sendError(401);
+                    }
+                    //segue viagem.
 
                         
                     }
 
+
+        }else{
+            filterChain.doFilter(request, response);
+        }
+                
                
             
     }
   
     
-
-
-
-
 }
