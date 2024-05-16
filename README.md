@@ -1,2 +1,2 @@
 # todolist
-todolist workshop de cria
+Basic todolist made for studies
