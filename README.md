@@ -1,2 +1,2 @@
 # todolist
-Basic todolist made for studies
+Basic todolist made for studies in Java Spring
